@@ -12,7 +12,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ## Simple graphing with ggplot2. 
 
-I was flipping through Hadley Wickham's *ggplot2* book the other day when I came across this:
+I was flipping through Hadley Wickham's *ggplot2* book the other day when I came across this (I added axis labels and title for clarity):
 
 ```{r hadleys-plot, echo = FALSE, warning = FALSE, message = FALSE}
 library(dplyr)
@@ -37,14 +37,17 @@ ggplot(economics) +
     size = 3, nudge_x = 50
   ) +
   geom_line(aes(date, unemploy)) +
-  scale_fill_manual(values = c("blue", "red"))
+  scale_fill_manual(values = c("blue", "red")) +
+  ggtitle("United States Unemployment (1967-2015)") +
+  labs(y = "Number of Unemployed (in thousands)")
+
 ```
 
 Which shows the unemployment data for the USA from 1967 to 2015 along with the Presidents in power during those periods (and their respective political parties). A very simple but poignant graph that (with added historical narrative) can tell us a lot about different stories about the US economy and the politics driving them! Motivated by this I set out to make a similar graph but with data from my birth country, Japan.
 
-For the unemployment data, I was able to download a dataset from the [Federal Reserve Bank of St. Louis](https://fred.stlouisfed.org/series/LRHUTTTTJPM156S) website. It's a really fantastic source with loads of raw data from around the world that you can download (in Excel, .csv, .png, PowerPoint, and .pdf formats), I will definitely be coming back here for other articles! This dataset comprises of the harmonized monthly unemployment rate for ALL person for Japan. There was another dataset for Aged 15-64 however that one only went back to January of 1970. I wanted to go back to 1960 (or better 1945) for a better look at Japan's post-war economic history and recovery so I went with this one instead. For a more in-depth analysis I would hunt down some Japanese sources but for today we are just focusing on the simple **ggplot2** graph.
+For the unemployment data, I was able to download a dataset from the [Federal Reserve Bank of St. Louis](https://fred.stlouisfed.org/series/LRHUTTTTJPM156S) website. It's a really fantastic source with loads of raw data from around the world that you can download (in Excel, .csv, .png, PowerPoint, and .pdf formats), I will definitely be coming back here for other articles! This dataset comprises of the harmonized monthly unemployment rate for ALL persons in Japan. There was another dataset for Aged 15-64 however that one only went back to January of 1970. I wanted to go back to 1960 (or better 1945) for a better look at Japan's post-war history and economic recovery so I went with this one instead. For a more in-depth analysis I would hunt down some Japanese sources but for today we are just focusing on the simple **ggplot2** graph.
 
-For the dataset about the Prime Ministers of Japan I went to Wikipedia, a source that's pretty reliable and easy to use. Normally, I would web-scrape the information using **rvest** however, I did not know how to scrap multiple tables at once (as the Prime Ministers were divided into individual tables according to the reigning Emperor) so I created it manually. Thankfully this didn't take too long!
+For the dataset about the Prime Ministers of Japan I went to Wikipedia, a source that's pretty reliable and easy to use. Normally, I would web-scrape the information using the **rvest** package however, I did not know how to scrap multiple tables at once (as the Prime Ministers were divided into individual tables according to the reigning Emperor) so I created it manually. Thankfully this didn't take too long!
 
 ```{r create prime ministers data set}
 prime_ministers <- data.frame(
@@ -75,17 +78,17 @@ prime_ministers <- data.frame(
 )
 ```
 
-With that out of the way we can load the unemployment data set and set about tidying out the raw data.
+With that out of the way we can load the unemployment data set and set about tidying the raw data.
 
 ```{r load data, warning=FALSE}
 # load data ---------------------------------------------------------------
-japan_unemploy <- read.csv("~/R_materials/Misc.ProjectsTutorials/japan_pm/LRUNTTTTJPM156S.csv", 
+japan_unemploy <- read.csv("~/R_materials/japan_pm/LRUNTTTTJPM156S.csv", 
                            header = TRUE, stringsAsFactors = FALSE)
 library(tibble)
 glimpse(japan_unemploy)   # glimpse() is similar to using str() but tidier
 ```
 
-We can see here that the dates are in character format and that the column names are in all caps. We can convert the dates using the `as.Date()` function included in base R and change the column names to lower case using the `str_lower()` function from the **stringr** package:
+We can see here that the dates are in **character** format and that the column names are in all caps. We can convert the dates using the `as.Date()` function included in base R and change the column names to lower case using the `str_lower()` function from the **stringr** package:
 
 ```{r set date format, warning=FALSE}
 library(stringr)
@@ -115,7 +118,7 @@ Let's start plotting!
 
 Here we use **ggrepel** package to prevent the labels from overlapping. `geom_vline()` and `geom_hline()` are used to create custom vertical and horizontal lines on the starting and ending dates of each Prime Minister's term and for the mean unemployment rate respectively.
 
-```{r first-plot, warning=FALSE}
+```{r first-plot, fig.height=6, fig.width=8, fig.align='center', warning=FALSE}
 library(ggrepel)  # to help with overlapping labels
 library(scales)   # to help format scales and labels
 
@@ -163,7 +166,7 @@ prime_ministers <- prime_ministers %>% mutate(pm_term = (end - start))
 
 Now let's try plotting again:
 
-```{r plot-again}
+```{r plot-again, fig.height=6, fig.width=8, fig.align='center'}
 # second try!
 
 japan_unemploy %>% 
